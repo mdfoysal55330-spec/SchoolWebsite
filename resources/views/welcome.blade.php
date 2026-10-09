@@ -1720,7 +1720,7 @@
 
                                     <div class="news-date">
 
-                                        {{ $item->publish_date->format('d M, Y') }}
+                                        {{ \Carbon\Carbon::parse($item->publish_date)->format('d M, Y') }}
 
                                     </div>
 
