@@ -11,6 +11,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf \
     /etc/apache2/apache2.conf \
@@ -20,11 +21,27 @@ COPY . /var/www/html
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
+
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN npm install && npm run build
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
-RUN mkdir -p /var/www/html/public/uploads/school && chown -R www-data:www-data /var/www/html/public && chmod -R 775 /var/www/html/public/uploads
+
+# এই লাইনটা ঠিক করে দিলাম - সব ফোল্ডার একবারে বানাবে
+RUN mkdir -p \
+    public/uploads/school \
+    public/uploads/notices \
+    public/uploads/gallery \
+    public/uploads/teachers \
+    public/uploads/slider \
+    public/uploads/results \
+    public/uploads/pages \
+    public/uploads/news \
+    storage/app/public \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/logs \
+    bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache public/uploads \
+    && chmod -R 775 storage bootstrap/cache public/uploads
 
 EXPOSE 10000
 
