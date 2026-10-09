@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // এই ৩ লাইনই ওই কালো "Not Secure" পেজটা ঠিক করবে
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         // সব upload ফোল্ডার অটো বানিয়ে নেবে - একবারে সব 500 Error ঠিক
         $folders = [
             'school', 'notices', 'gallery', 'teachers', 
