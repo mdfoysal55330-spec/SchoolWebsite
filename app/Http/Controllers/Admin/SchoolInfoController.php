@@ -5,22 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class SchoolInfoController extends Controller
 {
-    /**
-     * Show school information.
-     */
     public function edit()
     {
         $settings = SiteSetting::first();
-
         return view('admin.school-info', compact('settings'));
     }
 
-    /**
-     * Update school information.
-     */
     public function update(Request $request)
     {
         $validated = $request->validate([
@@ -29,19 +23,15 @@ class SchoolInfoController extends Controller
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
-
             'principal_name' => 'nullable|string|max:255',
             'principal_photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'principal_message' => 'nullable|string',
-
             'facebook_url' => 'nullable|url|max:500',
             'youtube_url' => 'nullable|url|max:500',
-
             'favicon' => 'nullable|image|mimes:jpg,jpeg,png,ico,webp|max:1024',
         ]);
 
         $settings = SiteSetting::first();
-
         if (!$settings) {
             $settings = new SiteSetting();
         }
@@ -55,65 +45,30 @@ class SchoolInfoController extends Controller
         $settings->facebook_url = $validated['facebook_url'] ?? null;
         $settings->youtube_url = $validated['youtube_url'] ?? null;
 
-        /*
-        |--------------------------------------------------------------------------
-        | School Logo
-        |--------------------------------------------------------------------------
-        */
+        // ফোল্ডার না থাকলে বানিয়ে নেবে - এটাই আসল ফিক্স
+        $uploadPath = public_path('uploads/school');
+        if (!File::exists($uploadPath)) {
+            File::makeDirectory($uploadPath, 0775, true);
+        }
 
         if ($request->hasFile('logo')) {
-
             $file = $request->file('logo');
-
             $filename = 'school-logo-' . time() . '.' . $file->getClientOriginalExtension();
-
-            $file->move(
-                public_path('uploads/school'),
-                $filename
-            );
-
+            $file->move($uploadPath, $filename);
             $settings->logo = 'uploads/school/' . $filename;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Principal Photo
-        |--------------------------------------------------------------------------
-        */
-
         if ($request->hasFile('principal_photo')) {
-
             $file = $request->file('principal_photo');
-
             $filename = 'principal-' . time() . '.' . $file->getClientOriginalExtension();
-
-            $file->move(
-                public_path('uploads/school'),
-                $filename
-            );
-
+            $file->move($uploadPath, $filename);
             $settings->principal_photo = 'uploads/school/' . $filename;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Favicon
-        |--------------------------------------------------------------------------
-        */
-
         if ($request->hasFile('favicon')) {
-
             $file = $request->file('favicon');
-
             $filename = 'favicon-' . time() . '.' . $file->getClientOriginalExtension();
-
-            $file->move(
-                public_path('uploads/school'),
-                $filename
-            );
-
+            $file->move($uploadPath, $filename);
             $settings->favicon = 'uploads/school/' . $filename;
         }
 
